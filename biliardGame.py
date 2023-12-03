@@ -5,6 +5,27 @@ import random
 import math
 
 
+mass = 0.1
+alpha = 1
+a = -5
+t = 0.08
+
+def getVelocity(par, v0, a, t, alpha, mass):
+    match par:
+        case True:
+            if v0 ** 2 - 2 * alpha / mass <= 0:
+                return 0
+
+            v0 = math.sqrt(v0 ** 2 - 2 * alpha / mass)
+
+        case False:
+            v0 = a * t + v0
+
+            if v0 < 0:
+                return 0                  # error!
+
+    return v0
+
 def rectangle():
     base = tk.Tk()
     base.title("board")
@@ -12,20 +33,13 @@ def rectangle():
     canvas.pack()
 
     # Constants
-    mass = 0.1
-    alpha = 1
-    a = -5
-    t = 0.08
 
-    def get_velocity(par, v0, a, t, alpha, mass):
-        match par:
-            case True:
-                v0 = math.sqrt(v0 ** 2 - 2 * alpha / mass)
-
-            case False:
-                v0 = a * t + v0
-
-        return v0
+    def aroundTheBorder(newA, a1, a2):
+        if newA >= a2:
+            return a2
+        
+        elif newA <= a1:
+            return a1
 
     def drawO():
         nonlocal x, y, angle, x1, y1, x2, y2, velocity
@@ -36,26 +50,19 @@ def rectangle():
         if x1 < newX < x2 and y1 < newY < y2:
             x = newX
             y = newY
-            velocity = get_velocity(False, velocity, a, t, alpha, mass)
+
+            velocity = getVelocity(False, velocity, a, t, alpha, mass)
 
         else:
-            x = x + velocity * math.cos(math.radians(angle))
-            y = y + velocity * math.sin(math.radians(angle))
-
             if not x1 < newX < x2:
+                aroundTheBorder(newX, x1, x2)
                 angle = 180 - angle
+                
             else:
+                aroundTheBorder(newY, y1, y2)
                 angle = 360 - angle
 
-            if x < x1:
-                x = x1
-            if x > x2:
-                x = x2
-            if y < y1:
-                y = y1
-            if y > y2:
-                y = y2
-            velocity = get_velocity(True, velocity, a, t, alpha, mass)
+            velocity = getVelocity(True, velocity, a, t, alpha, mass)
 
         canvas.create_text(x, y, text="o", fill="black", font=("Arial", 20), tags="o")
 
